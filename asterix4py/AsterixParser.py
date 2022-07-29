@@ -23,6 +23,7 @@ astXmlFiles = {
     30: 'asterix_cat030_6_2.xml',
     31: 'asterix_cat031_6_2.xml',
     32: 'asterix_cat032_7_0.xml',
+    34: 'asterix_cat034_1_27.xml',
     48: 'asterix_cat048_1_14.xml',
     62: 'asterix_cat062_1_18.xml',
     63: 'asterix_cat063_1_3.xml',
