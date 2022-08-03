@@ -12,7 +12,7 @@ dataItemsCache = {}
 uapItemsCache = {}
 
 astXmlFiles = {
-    1: 'asterix_cat001_1_1.xml',
+    1: 'asterix_cat001_1_3.xml',
     2: 'asterix_cat002_1_0.xml',
     8: 'asterix_cat008_1_0.xml',
     10: 'asterix_cat010_1_1.xml',
@@ -23,7 +23,7 @@ astXmlFiles = {
     30: 'asterix_cat030_6_2.xml',
     31: 'asterix_cat031_6_2.xml',
     32: 'asterix_cat032_7_0.xml',
-    34: 'asterix_cat034_1_27.xml',
+    34: 'asterix_cat034_1_29.xml',
     48: 'asterix_cat048_1_14.xml',
     62: 'asterix_cat062_1_18.xml',
     63: 'asterix_cat063_1_3.xml',
@@ -45,9 +45,13 @@ class AsterixParser:
         self.decoded_result = {}
 
         while self.p < self.datasize:
+            if self.datasize - self.p <= 3:
+                print("Not enough data for header.")
+                break
+
             startbyte = self.p
-            cat = int.from_bytes(self.bytes[0:1], byteorder='big', signed=False)
-            length = int.from_bytes(self.bytes[self.p + 1:self.p + 3], byteorder='big', signed=False)
+            cat = int.from_bytes(self.bytes[startbyte:startbyte +1], byteorder='big', signed=False)
+            length = int.from_bytes(self.bytes[startbyte + 1:startbyte + 3], byteorder='big', signed=False)
             self.p += 3
 
             if cat not in astXmlFiles:
@@ -57,11 +61,17 @@ class AsterixParser:
 
             self.loadAsterixDefinition(cat)
 
-            while self.p < startbyte + length:
+            last_byte = startbyte + length 
+            # Check that there's enough data to decode a message.
+            while self.p < last_byte and (last_byte - self.p - 3) > 3:
                 self.recordnr += 1
                 self.decoded = {'cat': cat}
                 if cat in dataItemsCache and cat in uapItemsCache:
-                    self.decode(dataItemsCache.get(cat), uapItemsCache.get(cat))
+                    try:
+                        self.decode(dataItemsCache.get(cat), uapItemsCache.get(cat))
+                    except Exception as e:
+                        print(f"Error decoding record {self.recordnr} cat {cat} - {e}")
+                        break
                 else:
                     print(f"Error: unable to find asterix cat{cat:03d} in data items cache")
                     self.p = startbyte + length
