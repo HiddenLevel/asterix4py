@@ -46,7 +46,6 @@ class AsterixParser:
 
         while self.p < self.datasize:
             if self.datasize - self.p <= 3:
-                print("Not enough data for header.")
                 break
 
             startbyte = self.p
@@ -70,7 +69,8 @@ class AsterixParser:
                     try:
                         self.decode(dataItemsCache.get(cat), uapItemsCache.get(cat))
                     except Exception as e:
-                        print(f"Error decoding record {self.recordnr} cat {cat} - {e}")
+                        self.decoded_result[self.recordnr] = self.decoded
+                        self.p = last_byte
                         break
                 else:
                     print(f"Error: unable to find asterix cat{cat:03d} in data items cache")
@@ -157,7 +157,7 @@ class AsterixParser:
 
             bit = bits.getAttribute('bit')
             if bit != '':
-                bit = int(bit)
+                bit = int(bit)                
                 results[bit_name] = ((data >> (bit - 1)) & 1)
 
             else:
@@ -255,17 +255,35 @@ class AsterixParser:
 
             indicator += 1
 
+        subfield_names = {}
+        # --------------------------get subfields names-------------
+        for cn in datafield.childNodes:
+            if cn.nodeName == 'Variable':
+                bitslist = cn.getElementsByTagName('Bits')
+                indicators_p = 1
+                index = 1
+                for bits in bitslist:
+                    bit_name = bits.getElementsByTagName('BitsShortName')[0].firstChild.nodeValue
+                    if bit_name == 'spare' or bit_name == 'FX':
+                        indicators_p += 1
+                        continue
+                    if indicators_p in indicators:
+                        subfield_names[index] = bit_name
+                    index +=1
+                    indicators_p += 1
+                break
+            
         # --------------------decode data------------------------
         results = {}
         index = 0
         for cn in datafield.childNodes:
             if cn.nodeName not in ['Fixed', 'Repetitive', 'Variable', 'Compound']:
                 continue
-
-            if index not in indicators:
+            if index not in subfield_names:
                 index += 1
                 continue
-
+            if subfield_names[index] not in results:
+                results[subfield_names[index]] = {}
             if cn.nodeName == 'Fixed':
                 r = self.decode_fixed(cn)
             elif cn.nodeName == 'Repetitive':
@@ -275,8 +293,8 @@ class AsterixParser:
             elif cn.nodeName == 'Compound':
                 r = self.decode_compound(cn)
 
+            results[subfield_names[index]].update(r)
             index += 1
-            results.update(r)
 
         return results
     
