@@ -11,26 +11,23 @@ except ImportError:  # try backwards compatibility python < 3.7
 from . import config
 from .common import AST_XML_FILES
 
+dataItemsCache = {}
+uapItemsCache = {}
+
 
 class AsterixEncoder():
+    """Encode single ASTERIX msg to bytearray"""
+
     def __init__(self, asterix_msg: Dict[str, Any]):
         assert type(asterix_msg) is dict
         self.asterix_msg = asterix_msg
 
 
         cat = int(self.asterix_msg['cat'])
+        if cat not in AST_XML_FILES:
+            return None
 
-        try:
-            # add asterix category decoding info to cache (10 times faster!)
-            xml = pkg_resources.read_text(config, AST_XML_FILES[cat])
-            xmlcat = minidom.parseString(xml)
-            category = xmlcat.getElementsByTagName('Category')[0]
-            self.dataitems = category.getElementsByTagName('DataItem')
-            uap = category.getElementsByTagName('UAP')[0]
-            self.uapitems = uap.getElementsByTagName('UAPItem')
-        except:
-            print('wrong input data format or %d not supported now' % cat)
-            return
+        self.loadAsterixDefinition(cat)
 
         self.encorded_result = bytearray()
         self.encorded_result += bytes([cat])
@@ -40,7 +37,7 @@ class AsterixEncoder():
 
         self.encoded = bytearray()
         self.asterix = asterix_msg
-        self.encode()
+        self.encode(cat)
 
         self.encorded_result += self.encoded
 
@@ -51,13 +48,28 @@ class AsterixEncoder():
     def get_result(self):
         return self.encorded_result
 
-    def encode(self):
+    def loadAsterixDefinition(self, cat):
+        try:
+            if cat not in dataItemsCache:
+                # add asterix category decoding info to cache (10 times faster!)
+                xml = pkg_resources.read_text(config, AST_XML_FILES[cat])
+                xmlcat = minidom.parseString(xml)
+                if xmlcat:
+                    category = xmlcat.getElementsByTagName('Category')[0]
+                    dataItemsCache[cat] = category.getElementsByTagName('DataItem')
+                    uap = category.getElementsByTagName('UAP')[0]
+                    uapItemsCache[cat] = uap.getElementsByTagName('UAPItem')
+        except:
+            print('cat %d not supported' % cat)
+            return
+
+    def encode(self, cat):
         # encoded length, tmp to 0
 
         FSPEC_bits = 0
         FSPEC_bits_len = 0
 
-        for uapitem in reversed(self.uapitems):
+        for uapitem in reversed(uapItemsCache[cat]):
             # FX field
             if FSPEC_bits_len % 8 == 0:
                 if FSPEC_bits != 0:
@@ -80,12 +92,12 @@ class AsterixEncoder():
         self.encoded += (FSPEC_bits).to_bytes(FSPEC_bits_len //
                                               8, byteorder='big')
 
-        for uapitem in self.uapitems:
+        for uapitem in uapItemsCache[cat]:
             id = uapitem.firstChild.nodeValue
             if id not in self.asterix:
                 continue
 
-            for dataitem in self.dataitems:
+            for dataitem in dataItemsCache[cat]:
                 itemid = dataitem.getAttribute('id')
                 if itemid == id:
                     dataitemformat = dataitem.getElementsByTagName('DataItemFormat')[
