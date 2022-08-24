@@ -28,9 +28,9 @@ class AsterixEncoder():
 
         self.loadAsterixDefinition(cat)
 
-        self.encorded_result = bytearray()
-        self.encorded_result += bytes([cat])
-        self.encorded_result += bytes([0, 0])
+        self.encoded_result = bytearray()
+        self.encoded_result += bytes([cat])
+        self.encoded_result += bytes([0, 0])
 
         del asterix_msg['cat']
 
@@ -38,14 +38,14 @@ class AsterixEncoder():
         self.asterix = asterix_msg
         self.encode(cat)
 
-        self.encorded_result += self.encoded
+        self.encoded_result += self.encoded
 
-        length = len(self.encorded_result)
+        length = len(self.encoded_result)
 
-        self.encorded_result[1:3] = (length).to_bytes(2, 'big')
+        self.encoded_result[1:3] = (length).to_bytes(2, 'big')
 
     def get_result(self):
-        return self.encorded_result
+        return self.encoded_result
 
     def loadAsterixDefinition(self, cat):
         try:
