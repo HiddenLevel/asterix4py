@@ -1,5 +1,4 @@
 
-
 AST_XML_FILES = {
     1: 'asterix_cat001_1_3.xml',
     2: 'asterix_cat002_1_0.xml',

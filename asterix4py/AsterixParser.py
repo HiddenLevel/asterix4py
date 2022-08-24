@@ -21,7 +21,7 @@ class AsterixParser:
         self.bytes = bytesdata
         self.datasize = len(bytesdata)
         self.p = 0
-        self.recordnr = 0
+        self.record_number = 0
 
         self.decoded_result = {}
 
@@ -30,8 +30,16 @@ class AsterixParser:
                 break
 
             startbyte = self.p
-            cat = int.from_bytes(self.bytes[startbyte:startbyte +1], byteorder='big', signed=False)
-            length = int.from_bytes(self.bytes[startbyte + 1:startbyte + 3], byteorder='big', signed=False)
+            cat = int.from_bytes(
+                self.bytes[startbyte:startbyte +1],
+                byteorder='big',
+                signed=False
+            )
+            length = int.from_bytes(
+                self.bytes[startbyte + 1:startbyte + 3],
+                byteorder='big',
+                signed=False
+            )
             self.p += 3
 
             if cat not in AST_XML_FILES:
@@ -44,19 +52,25 @@ class AsterixParser:
             last_byte = startbyte + length 
             # Check that there's enough data to decode a message.
             while self.p < last_byte and (last_byte - self.p - 3) > 3:
-                self.recordnr += 1
+                self.record_number += 1
                 self.decoded = {'cat': cat}
                 if cat in dataItemsCache and cat in uapItemsCache:
                     try:
-                        self.decode(dataItemsCache.get(cat), uapItemsCache.get(cat))
+                        self.decode(
+                            dataitems=dataItemsCache.get(cat),
+                            uapitems=uapItemsCache.get(cat)
+                        )
                     except Exception as e:
-                        self.decoded_result[self.recordnr] = self.decoded
+                        self.decoded_result[self.record_number] = self.decoded
                         self.p = last_byte
                         break
                 else:
-                    print(f"Error: unable to find asterix cat{cat:03d} in data items cache")
+                    print(
+                        f"Error: unable to find asterix cat{cat:03d} in "
+                        "data items cache"
+                    )
                     self.p = startbyte + length
-                self.decoded_result[self.recordnr] = self.decoded
+                self.decoded_result[self.record_number] = self.decoded
 
     """get decoded results in JSON format"""
 

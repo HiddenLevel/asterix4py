@@ -115,7 +115,6 @@ class AsterixEncoder():
                         elif cn.nodeName == 'Compound':
                             n, r = self.encode_compound(
                                 self.asterix[itemid], cn)
-
                         if r:
                             self.encoded += r
 
@@ -163,8 +162,7 @@ class AsterixEncoder():
                     elif encode == 'ascii':
                         v = int.from_bytes(v.encode(), 'big')
                     elif encode == 'unsigned':
-                        # signed to unsigned, just & 0b11111...
-                        mask = (1 << (_from - _to + 1)) - 1    # 0b1111111....
+                        mask = (1 << (_from - _to + 1)) - 1
                         v &= mask
 
                     v <<= (_to - 1)
