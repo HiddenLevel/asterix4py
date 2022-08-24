@@ -19,9 +19,8 @@ class AsterixEncoder():
     """Encode single ASTERIX msg to bytearray"""
 
     def __init__(self, asterix_msg: Dict[str, Any]):
-        assert type(asterix_msg) is dict
+        assert isinstance(asterix_msg, dict)
         self.asterix_msg = asterix_msg
-
 
         cat = int(self.asterix_msg['cat'])
         if cat not in AST_XML_FILES:
@@ -51,15 +50,17 @@ class AsterixEncoder():
     def loadAsterixDefinition(self, cat):
         try:
             if cat not in dataItemsCache:
-                # add asterix category decoding info to cache (10 times faster!)
+                # add asterix category decoding info to cache (10 times
+                # faster!)
                 xml = pkg_resources.read_text(config, AST_XML_FILES[cat])
                 xmlcat = minidom.parseString(xml)
                 if xmlcat:
                     category = xmlcat.getElementsByTagName('Category')[0]
-                    dataItemsCache[cat] = category.getElementsByTagName('DataItem')
+                    dataItemsCache[cat] = category.getElementsByTagName(
+                        'DataItem')
                     uap = category.getElementsByTagName('UAP')[0]
                     uapItemsCache[cat] = uap.getElementsByTagName('UAPItem')
-        except:
+        except BaseException:
             print('cat %d not supported' % cat)
             return
 
@@ -82,7 +83,7 @@ class AsterixEncoder():
             # other uapitem field
             id = uapitem.firstChild.nodeValue
             if id in self.asterix:
-                if not self.asterix[id]:   # if self.asterix[id] is blank, delete it
+                if not self.asterix[id]:
                     del self.asterix[id]
                     continue
                 FSPEC_bits += (1 << FSPEC_bits_len)
@@ -100,8 +101,8 @@ class AsterixEncoder():
             for dataitem in dataItemsCache[cat]:
                 itemid = dataitem.getAttribute('id')
                 if itemid == id:
-                    dataitemformat = dataitem.getElementsByTagName('DataItemFormat')[
-                        0]
+                    dataitemformat = dataitem.getElementsByTagName(
+                        'DataItemFormat')[0]
                     for cn in dataitemformat.childNodes:
                         r = None
                         if cn.nodeName == 'Fixed':
@@ -146,12 +147,10 @@ class AsterixEncoder():
                         _from, _to = _to, _from
                     v = data_asterix[bit_name]
 
-
                     encode = bits.getAttribute('encode')
 
                     BitsUnit = bits.getElementsByTagName("BitsUnit")
-                    
-                    
+
                     if BitsUnit:
                         scale = BitsUnit[0].getAttribute('scale')
                         v = int(v / float(scale))
@@ -167,10 +166,9 @@ class AsterixEncoder():
 
                     v <<= (_to - 1)
                     encoded_bytes |= v
-                    
+
                 del data_asterix[bit_name]
         return encoded_num, (encoded_bytes).to_bytes(length, 'big')
-
 
     def _6bitchars_to_bits(self, cs):
         bitvalue = 0
@@ -195,7 +193,7 @@ class AsterixEncoder():
 
     # still not validated, may be wrong :)
     def encode_repetitive(self, data_asterix, datafield):
-        if type(data_asterix) is not list:
+        if not isinstance(data_asterix, list):
             data_asterix = list(data_asterix.values())
         result = bytearray()
 
@@ -224,25 +222,27 @@ class AsterixEncoder():
                 index = 1
                 p = 0
                 for bits in bitslist:
-                    bit_name = bits.getElementsByTagName('BitsShortName')[0].firstChild.nodeValue
+                    bit_name = bits.getElementsByTagName(
+                        'BitsShortName')[0].firstChild.nodeValue
                     p += 1
                     if bit_name == 'spare' or bit_name == 'FX':
                         continue
                     if bit_name in data_asterix:
                         subfield_names[index] = bit_name
                         indicator_bits.append(p)
-                    index +=1
+                    index += 1
                 break
         index = -1
         indexs = []
         for cn in datafield.childNodes:
-            
-            if cn.nodeName not in ['Fixed', 'Repetitive', 'Variable', 'Compound']:
+
+            if cn.nodeName not in [
+                    'Fixed', 'Repetitive', 'Variable', 'Compound']:
                 continue
 
-            index += 1      # current node index
+            index += 1  # current node index
 
-            if index == 0:      # skip first node, it's indicator
+            if index == 0:  # skip first node, it's indicator
                 continue
             if index % 8 == 0:  # Fx field
                 index += 1
@@ -251,13 +251,17 @@ class AsterixEncoder():
                 continue
 
             if cn.nodeName == 'Fixed':
-                n, r = self.encode_fixed(data_asterix[subfield_names[index]], cn)
+                n, r = self.encode_fixed(
+                    data_asterix[subfield_names[index]], cn)
             elif cn.nodeName == 'Repetitive':
-                n, r = self.encode_repetitive(data_asterix[subfield_names[index]], cn)
+                n, r = self.encode_repetitive(
+                    data_asterix[subfield_names[index]], cn)
             elif cn.nodeName == 'Variable':
-                n, r = self.encode_variable(data_asterix[subfield_names[index]], cn)
+                n, r = self.encode_variable(
+                    data_asterix[subfield_names[index]], cn)
             elif cn.nodeName == 'Compound':
-                n, r = self.encode_compound(data_asterix[subfield_names[index]], cn)
+                n, r = self.encode_compound(
+                    data_asterix[subfield_names[index]], cn)
 
             encoded_num += n
             result += r
@@ -265,7 +269,7 @@ class AsterixEncoder():
 
         indicator = 0
         maxindex = indexs[-1]
-        indicator_bytes = (maxindex + 7) // 8   # how many indicator bytes
+        indicator_bytes = (maxindex + 7) // 8  # how many indicator bytes
 
         # set indicator bits
         for index in indicator_bits:
