@@ -14,6 +14,8 @@ from .common import AST_XML_FILES
 dataItemsCache = {}
 uapItemsCache = {}
 
+BYTE_LENGTH = 8
+
 
 class AsterixEncoder():
     """Encode single ASTERIX msg to bytearray"""
@@ -72,7 +74,7 @@ class AsterixEncoder():
 
         for uapitem in reversed(uapItemsCache[cat]):
             # FX field
-            if FSPEC_bits_len % 8 == 0:
+            if FSPEC_bits_len % BYTE_LENGTH == 0:
                 if FSPEC_bits != 0:
                     FSPEC_bits += (1 << FSPEC_bits_len)
                 else:  # if all the previous field is zero, discard it
@@ -91,7 +93,7 @@ class AsterixEncoder():
             FSPEC_bits_len += 1
 
         self.encoded += (FSPEC_bits).to_bytes(FSPEC_bits_len //
-                                              8, byteorder='big')
+                                              BYTE_LENGTH, byteorder='big')
 
         for uapitem in uapItemsCache[cat]:
             id = uapitem.firstChild.nodeValue
@@ -124,7 +126,7 @@ class AsterixEncoder():
         bitslist = datafield.getElementsByTagName('Bits')
 
         encoded_bytes = 0
-        encoded_num = 0         # the num of encoded asterix sub filed
+        encoded_num = 0  # the num of encoded asterix sub filed
         for bits in bitslist:
             bit_name = bits.getElementsByTagName('BitsShortName')[
                 0].firstChild.nodeValue
@@ -155,7 +157,7 @@ class AsterixEncoder():
                         scale = BitsUnit[0].getAttribute('scale')
                         v = int(v / float(scale))
                     if encode == 'octal':
-                        v = int(v, 8)
+                        v = int(v, BYTE_LENGTH)
                     elif encode == '6bitschar':
                         v = self._6bitchars_to_bits(v)
                     elif encode == 'ascii':
@@ -186,7 +188,7 @@ class AsterixEncoder():
             result += r
 
             if data_asterix:
-                result[-1] |= 1   # set FX=1
+                result[-1] |= 1  # set FX=1
             else:
                 break
         return encoded_num, result
@@ -197,7 +199,7 @@ class AsterixEncoder():
         result = bytearray()
 
         length = len(data_asterix)
-        result += bytes([length])   # one byte length
+        result += bytes([length])  # one byte length
         encoded_num = 0
 
         # repetive has only one subfiled, Fixed
@@ -243,7 +245,7 @@ class AsterixEncoder():
 
             if index == 0:  # skip first node, it's indicator
                 continue
-            if index % 8 == 0:  # Fx field
+            if index % BYTE_LENGTH == 0:  # Fx field
                 index += 1
 
             if index not in subfield_names:
@@ -268,16 +270,17 @@ class AsterixEncoder():
 
         indicator = 0
         maxindex = indexs[-1]
-        indicator_bytes = (maxindex + 7) // 8  # how many indicator bytes
+        # how many indicator bytes
+        indicator_bytes = (maxindex + 7) // BYTE_LENGTH
 
         # set indicator bits
         for index in indicator_bits:
-            _shift = indicator_bytes * 8 - index
+            _shift = indicator_bytes * BYTE_LENGTH - index
             indicator |= (1 << _shift)
 
         # set Fx bits
         for i in range(1, indicator_bytes):  # lasst Fx is zero
-            _shift = i * 8
+            _shift = i * BYTE_LENGTH
             indicator |= (1 << _shift)
 
         result = (indicator).to_bytes(indicator_bytes, 'big') + result
