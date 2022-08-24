@@ -5,31 +5,13 @@ try:
 except ImportError:  # try backwards compatibility python < 3.7
     import importlib_resources as pkg_resources
 
+from .common import AST_XML_FILES
 from . import config
 from . import icao6bitchars
-
+ 
+ 
 dataItemsCache = {}
 uapItemsCache = {}
-
-astXmlFiles = {
-    1: 'asterix_cat001_1_1.xml',
-    2: 'asterix_cat002_1_0.xml',
-    8: 'asterix_cat008_1_0.xml',
-    10: 'asterix_cat010_1_1.xml',
-    19: 'asterix_cat019_1_2.xml',
-    20: 'asterix_cat020_1_7.xml',
-    21: 'asterix_cat021_2_2.xml',
-    23: 'asterix_cat023_1_2.xml',
-    30: 'asterix_cat030_6_2.xml',
-    31: 'asterix_cat031_6_2.xml',
-    32: 'asterix_cat032_7_0.xml',
-    48: 'asterix_cat048_1_14.xml',
-    62: 'asterix_cat062_1_18.xml',
-    63: 'asterix_cat063_1_3.xml',
-    65: 'asterix_cat065_1_3.xml',
-    242: 'asterix_cat242_1_0.xml',
-    252: 'asterix_cat252_7_0.xml'
-}
 
 
 class AsterixParser:
@@ -39,32 +21,56 @@ class AsterixParser:
         self.bytes = bytesdata
         self.datasize = len(bytesdata)
         self.p = 0
-        self.recordnr = 0
+        self.record_number = 0
 
         self.decoded_result = {}
 
         while self.p < self.datasize:
+            if self.datasize - self.p <= 3:
+                break
+
             startbyte = self.p
-            cat = int.from_bytes(self.bytes[0:1], byteorder='big', signed=False)
-            length = int.from_bytes(self.bytes[self.p + 1:self.p + 3], byteorder='big', signed=False)
+            cat = int.from_bytes(
+                self.bytes[startbyte:startbyte +1],
+                byteorder='big',
+                signed=False
+            )
+            length = int.from_bytes(
+                self.bytes[startbyte + 1:startbyte + 3],
+                byteorder='big',
+                signed=False
+            )
             self.p += 3
 
-            if cat not in astXmlFiles:
+            if cat not in AST_XML_FILES:
                 # ignore unknown categories
                 self.p += length
                 continue
 
             self.loadAsterixDefinition(cat)
 
-            while self.p < startbyte + length:
-                self.recordnr += 1
+            last_byte = startbyte + length 
+            # Check that there's enough data to decode a message.
+            while self.p < last_byte and (last_byte - self.p - 3) > 3:
+                self.record_number += 1
                 self.decoded = {'cat': cat}
                 if cat in dataItemsCache and cat in uapItemsCache:
-                    self.decode(dataItemsCache.get(cat), uapItemsCache.get(cat))
+                    try:
+                        self.decode(
+                            dataitems=dataItemsCache.get(cat),
+                            uapitems=uapItemsCache.get(cat)
+                        )
+                    except Exception as e:
+                        self.decoded_result[self.record_number] = self.decoded
+                        self.p = last_byte
+                        break
                 else:
-                    print(f"Error: unable to find asterix cat{cat:03d} in data items cache")
+                    print(
+                        f"Error: unable to find asterix cat{cat:03d} in "
+                        "data items cache"
+                    )
                     self.p = startbyte + length
-                self.decoded_result[self.recordnr] = self.decoded
+                self.decoded_result[self.record_number] = self.decoded
 
     """get decoded results in JSON format"""
 
@@ -75,7 +81,7 @@ class AsterixParser:
         try:
             if cat not in dataItemsCache:
                 # add asterix category decoding info to cache (10 times faster!)
-                xml = pkg_resources.read_text(config, astXmlFiles[cat])
+                xml = pkg_resources.read_text(config, AST_XML_FILES[cat])
                 xmlcat = minidom.parseString(xml)
                 if xmlcat:
                     category = xmlcat.getElementsByTagName('Category')[0]
@@ -146,7 +152,7 @@ class AsterixParser:
 
             bit = bits.getAttribute('bit')
             if bit != '':
-                bit = int(bit)
+                bit = int(bit)                
                 results[bit_name] = ((data >> (bit - 1)) & 1)
 
             else:
@@ -187,6 +193,8 @@ class AsterixParser:
                 BitsUnit = bits.getElementsByTagName("BitsUnit")
                 if BitsUnit:
                     scale = BitsUnit[0].getAttribute('scale')
+                    if not scale:
+                        scale = 1
                     results[bit_name] = results[bit_name] * float(scale)
 
         return results
@@ -242,17 +250,35 @@ class AsterixParser:
 
             indicator += 1
 
+        subfield_names = {}
+        # --------------------------get subfields names-------------
+        for cn in datafield.childNodes:
+            if cn.nodeName == 'Variable':
+                bitslist = cn.getElementsByTagName('Bits')
+                indicators_p = 1
+                index = 1
+                for bits in bitslist:
+                    bit_name = bits.getElementsByTagName('BitsShortName')[0].firstChild.nodeValue
+                    if bit_name == 'spare' or bit_name == 'FX':
+                        indicators_p += 1
+                        continue
+                    if indicators_p in indicators:
+                        subfield_names[index] = bit_name
+                    index +=1
+                    indicators_p += 1
+                break
+            
         # --------------------decode data------------------------
         results = {}
         index = 0
         for cn in datafield.childNodes:
             if cn.nodeName not in ['Fixed', 'Repetitive', 'Variable', 'Compound']:
                 continue
-
-            if index not in indicators:
+            if index not in subfield_names:
                 index += 1
                 continue
-
+            if subfield_names[index] not in results:
+                results[subfield_names[index]] = {}
             if cn.nodeName == 'Fixed':
                 r = self.decode_fixed(cn)
             elif cn.nodeName == 'Repetitive':
@@ -262,8 +288,8 @@ class AsterixParser:
             elif cn.nodeName == 'Compound':
                 r = self.decode_compound(cn)
 
+            results[subfield_names[index]].update(r)
             index += 1
-            results.update(r)
 
         return results
     

@@ -188,7 +188,6 @@
                         </Bits>
                     </Fixed>
                 </Variable>
-
                 <Fixed length="1">
                     <Bits bit="8">
                         <BitsShortName>NOGO</BitsShortName>
@@ -238,9 +237,6 @@
                         <BitsConst>0</BitsConst>
                     </Bits>
                 </Fixed>
-
-
-
                 <Fixed length="1">
                     <Bits bit="8">
                         <BitsShortName>ANT</BitsShortName>
@@ -274,7 +270,6 @@
                         <BitsConst>0</BitsConst>
                     </Bits>
                 </Fixed>
-
                 <Fixed length="1">
                     <Bits bit="8">
                         <BitsShortName>ANT</BitsShortName>
@@ -308,7 +303,6 @@
                         <BitsConst>0</BitsConst>
                     </Bits>
                 </Fixed>
-
                 <Fixed length="2">
                     <Bits bit="16">
                         <BitsShortName>ANT</BitsShortName>
