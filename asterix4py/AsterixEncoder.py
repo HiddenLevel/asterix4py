@@ -191,7 +191,6 @@ class AsterixEncoder():
                 break
         return encoded_num, result
 
-    # still not validated, may be wrong :)
     def encode_repetitive(self, data_asterix, datafield):
         if not isinstance(data_asterix, list):
             data_asterix = list(data_asterix.values())
