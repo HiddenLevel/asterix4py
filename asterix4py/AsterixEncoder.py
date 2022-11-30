@@ -127,7 +127,6 @@ class AsterixEncoder():
 
         encoded_bytes = 0
         encoded_num = 0  # the num of encoded asterix sub filed
-        signed = False
         for bits in bitslist:
             bit_name = bits.getElementsByTagName('BitsShortName')[
                 0].firstChild.nodeValue
@@ -162,18 +161,14 @@ class AsterixEncoder():
                         v = self._6bitchars_to_bits(v)
                     elif encode == 'ascii':
                         v = int.from_bytes(v.encode(), 'big')
-                    elif encode == 'unsigned':
+                    elif encode == 'unsigned' or encode == 'signed':
                         mask = (1 << (_from - _to + 1)) - 1
                         v &= mask
-                    elif encode == 'signed':
-                        mask = (1 << (_from - _to + 1)) - 1
-                        v &= mask
-                        signed = True
                     v <<= (_to - 1)
                     encoded_bytes |= v
 
                 del data_asterix[bit_name]
-        return encoded_num, (encoded_bytes).to_bytes(length, 'big', signed=signed)
+        return encoded_num, (encoded_bytes).to_bytes(length, 'big')
 
     def _6bitchars_to_bits(self, cs):
         bitvalue = 0

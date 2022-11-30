@@ -686,7 +686,7 @@
         </DataItemDefinition>
         <DataItemFormat desc="8-octet fixed length data item.">
             <Fixed length="8">
-                <Bits from="64" to="49" encode="unsigned">
+                <Bits from="64" to="49" encode="signed">
                     <BitsShortName>HGT</BitsShortName>
                     <BitsName>Height of Data Source</BitsName>
                     <BitsUnit scale="1.0">m</BitsUnit>
