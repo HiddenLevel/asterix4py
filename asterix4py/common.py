@@ -14,7 +14,7 @@ AST_XML_FILES = {
     34: 'asterix_cat034_1_29.xml',
     48: 'asterix_cat048_1_30.xml',
     62: 'asterix_cat062_1_18.xml',
-    63: 'asterix_cat063_1_3.xml',
+    63: 'asterix_cat063_1_6.xml',
     65: 'asterix_cat065_1_3.xml',
     242: 'asterix_cat242_1_0.xml',
     252: 'asterix_cat252_7_0.xml'
