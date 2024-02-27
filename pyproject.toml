@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asterix4py"
+description = "Pure python library for decoding Eurocontrol Asterix binary data."
+requires-python = ">=3.12"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Filip Jonckers"},
+]
+dependencies = [
+    "hlaiobaseproc>=4.dev",
+    "hlhealthreporting>=1.dev",
+    "hlloggins>=3.dev",
+    "hlflights>=2.dev",
+    "hlproto>=2.dev",
+    "hlprotosiapcore>=3.dev",
+    "hlprotoutils>=8.dev",
+    "hlsiapcore>=4.1.dev",
+    "hltimeutils>=5.dev",
+    "hlhealthreporting>=1.dev",
+    "hlridval>=3.dev",
+    "hltrackerutils>=4.1.dev",
+    "numpy>=1.26",
+    "setuptools>=68",
+]
+dynamic = ["readme", "version"]
+
+[project.urls]
+BugReports = "https://github.com/filipjonckers/asterix4py/issues"
+Source = "https://github.com/filipjonckers/asterix4py"
+
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"], content-type = "text/markdown"}
