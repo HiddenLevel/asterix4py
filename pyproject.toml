@@ -34,5 +34,11 @@ BugReports = "https://github.com/filipjonckers/asterix4py/issues"
 Source = "https://github.com/filipjonckers/asterix4py"
 
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+asterix4py = ["config/*.xml"]
+
 [tool.setuptools.dynamic]
 readme = {file = ["README.md"], content-type = "text/markdown"}
