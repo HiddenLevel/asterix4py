@@ -1,10 +1,11 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "asterix4py"
 version = "2"
+readme = "README.md"
 description = "Pure python library for decoding Eurocontrol Asterix binary data."
 requires-python = ">=3.12"
 license = {file = "LICENSE"}
@@ -16,12 +17,3 @@ authors = [
 BugReports = "https://github.com/filipjonckers/asterix4py/issues"
 Source = "https://github.com/filipjonckers/asterix4py"
 
-
-[tool.setuptools.packages.find]
-where = ["src"]
-
-[tool.setuptools.package-data]
-asterix4py = ["config/*.xml"]
-
-[tool.setuptools.dynamic]
-readme = {file = ["README.md"], content-type = "text/markdown"}
