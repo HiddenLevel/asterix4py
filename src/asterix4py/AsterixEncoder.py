@@ -150,7 +150,7 @@ class AsterixEncoder:
 
                     if BitsUnit:
                         scale = BitsUnit[0].getAttribute('scale')
-                        v = int(v / float(scale))
+                        v = round(v / float(scale))
                     if encode == 'octal':
                         v = int(v, BYTE_LENGTH)
                     elif encode == '6bitschar':
