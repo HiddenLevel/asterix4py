@@ -1,6 +1,5 @@
 import csv
 import datetime
-import sys
 import time
 
 import asterix4py
@@ -15,7 +14,8 @@ FILE = '../sample/cat062.ast'
 HEADER = ["timestamp", "TSE", "lat", "lon", "x", "y", "MFL", "ADR", "ACID", "SAL", "FSS", "MAH", "IAS", "TAS", "BPS",
           "MDS age", "MFL age", "FSS age", "MHG age", "IAR age", "TAS age", "BPS age"]
 
-midnight = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+midnight = datetime.datetime.now().replace(
+    hour=0, minute=0, second=0, microsecond=0)
 start = time.perf_counter()
 
 with open('daps_age.csv', mode='w') as outfile:
@@ -42,7 +42,8 @@ with open('daps_age.csv', mode='w') as outfile:
                     continue
 
                 data = [
-                    f"{midnight + datetime.timedelta(seconds=plot['070']['ToT']):%H:%M:%S.%f}",
+                    f"{midnight +
+                        datetime.timedelta(seconds=plot['070']['ToT']):%H:%M:%S.%f}",
                     f"{plot['080'].get('TSE', 0)}"
                 ]
 
@@ -66,14 +67,16 @@ with open('daps_age.csv', mode='w') as outfile:
 
                 if plot.get('380'):
                     data.append(f"{plot['380'].get('ADR', 0):06X}")
-                    data.append(f"{plot['380'].get('ACID', '')}".rstrip())  # BDS20
+                    data.append(
+                        f"{plot['380'].get('ACID', '')}".rstrip())  # BDS20
                     data.append(f"{plot['380'].get('SAL', '')}")  # BDS40 SAL
                     data.append(f"{plot['380'].get('FSS', '')}")  # BDS40 FSSA
                     data.append(f"{plot['380'].get('MAH', '')}")  # BDS60 MHG
                     data.append(f"{plot['380'].get('IAS', '')}")  # BDS60 IAS
                     data.append(f"{plot['380'].get('TAS', '')}")  # BDS50 TAS
                     # data.append(f"{800 + plot['380'].get('BPS', 0)}")  # BDS40 BPS - add 800 hPa
-                    bps = 800 + plot['380'].get('BPS', 0)  # BDS40 BPS - add 800 hPa
+                    # BDS40 BPS - add 800 hPa
+                    bps = 800 + plot['380'].get('BPS', 0)
                     if bps > 800:
                         data.append(bps)  # BDS40 BPS - add 800 hPa
                     else:

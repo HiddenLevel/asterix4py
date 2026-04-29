@@ -5,7 +5,8 @@ import asterix4py
 
 FILE = '../sample/cat062.ast'
 
-midnight = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+midnight = datetime.datetime.now().replace(
+    hour=0, minute=0, second=0, microsecond=0)
 start = time.perf_counter()
 
 with open(FILE, 'rb') as astfile:
@@ -26,19 +27,16 @@ with open(FILE, 'rb') as astfile:
 
             print(
                 f"{nr:d} cat{cat:03d}"
-                f" tot:{midnight + datetime.timedelta(seconds=plot['070']['ToT']):%H:%M:%S.%f}"
-                , end='')
+                f" tot:{midnight + datetime.timedelta(seconds=plot['070']['ToT']):%H:%M:%S.%f}", end='')
 
             if plot.get('105'):
                 print(
                     f" lat:{plot['105']['Lat']:0<10.9}"
-                    f" lon:{plot['105']['Lon']:0<10.9}"
-                , end='')
+                    f" lon:{plot['105']['Lon']:0<10.9}", end='')
 
             if plot.get('060'):
                 print(
-                    f" a:{plot['060']['Mode3A']}"
-                , end='')
+                    f" a:{plot['060']['Mode3A']}", end='')
 
             if plot.get('380'):
                 print(
@@ -46,8 +44,7 @@ with open(FILE, 'rb') as astfile:
                     f" acid:{plot['380'].get('ACID', '')}"
                     f" fss:{plot['380'].get('FSS', 0)}"
                     f" gsp:{plot['380'].get('GSP', 0)}"
-                    f" ias:{plot['380'].get('IAS', 0)}"
-                , end='')
+                    f" ias:{plot['380'].get('IAS', 0)}", end='')
 
             if plot.get('390'):
                 print(
@@ -56,8 +53,7 @@ with open(FILE, 'rb') as astfile:
                     f" wtc:{plot['390'].get('WTC', '')}"
                     f" adep:{plot['390'].get('DEP', '')}"
                     f" ades:{plot['390'].get('DES', '')}"
-                    f" cfl:{plot['390'].get('CFL', 0)}"
-                , end='')
+                    f" cfl:{plot['390'].get('CFL', 0)}", end='')
             print('')
 
         data = astfile.read(3)

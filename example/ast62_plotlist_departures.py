@@ -6,7 +6,8 @@ import asterix4py
 FILE = '../sample/cat062.ast'
 ADEP = 'EBBR'
 
-midnight = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+midnight = datetime.datetime.now().replace(
+    hour=0, minute=0, second=0, microsecond=0)
 start = time.perf_counter()
 
 with open(FILE, 'rb') as astfile:
@@ -28,8 +29,7 @@ with open(FILE, 'rb') as astfile:
             if plot.get('390') and plot['390'].get('DEP', '').startswith(ADEP):
 
                 print(
-                    f" tot:{midnight + datetime.timedelta(seconds=plot['070']['ToT']):%H:%M:%S.%f}"
-                    , end='')
+                    f" tot:{midnight + datetime.timedelta(seconds=plot['070']['ToT']):%H:%M:%S.%f}", end='')
 
                 print(
                     f" cs:{plot['390'].get('CS', '')}"
@@ -37,14 +37,12 @@ with open(FILE, 'rb') as astfile:
                     f" wtc:{plot['390'].get('WTC', '')}"
                     f" adep:{plot['390'].get('DEP', '')}"
                     f" ades:{plot['390'].get('DES', '')}"
-                    f" cfl:{plot['390'].get('CFL', 0)}"
-                    , end='')
+                    f" cfl:{plot['390'].get('CFL', 0)}", end='')
 
                 if plot.get('105'):
                     print(
                         f" lat:{plot['105']['Lat']:0<10.9}"
-                        f" lon:{plot['105']['Lon']:0<10.9}"
-                        , end='')
+                        f" lon:{plot['105']['Lon']:0<10.9}", end='')
 
                 print('')
 

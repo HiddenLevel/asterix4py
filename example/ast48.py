@@ -11,7 +11,7 @@ encoder = asterix4py.AsterixEncoder(copy.deepcopy(parser_result))
 encoder_result = encoder.get_result()
 
 print('dec: ', memoryview(b).tolist())
-print('hex: ', ['{:02X}'.format(i) for i in memoryview(b).tolist()])
+print('hex: ', [f'{i:02X}' for i in memoryview(b).tolist()])
 print('AsterixParser result: ', parser_result)
 print('AsterixEncoder result: ', bytes(encoder_result))
 print('bytes read result    : ', bytes(memoryview(b).tolist()))
